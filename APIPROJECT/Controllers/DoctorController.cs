@@ -7,101 +7,94 @@ using System.Drawing;
 
 namespace APIPROJECT.Controllers
 {
-    [Authorize]
+   
     [Route("api/[controller]")]
     [ApiController]
     public class DoctorController : ControllerBase
     {
-        private readonly DPContext _DContext;
+        private readonly IDoctorRepository _doctorRepository;
 
-        public DoctorController(DPContext Context)
+        public DoctorController(IDoctorRepository doctorRepository)
         {
-            _DContext = Context;
+            _doctorRepository = doctorRepository;
         }
 
+        [Authorize(Roles = "Customer,Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Doctor>>> Get()
         {
             try
             {
-                return await _DContext.Doctors.ToListAsync();
+                var doctors = await _doctorRepository.GetDoctors();
+                return Ok(doctors);
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
-
+        [Authorize(Roles = "Customer,Admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<Doctor>> Get(int id)
         {
             try
             {
-                Doctor dt = await _DContext.Doctors.SingleOrDefaultAsync(x => x.Doctor_Id == id);
-                if (dt == null)
+                var doctor = await _doctorRepository.GetDoctorById(id);
+                if (doctor == null)
                 {
                     return NotFound();
                 }
-                return dt;
+                return doctor;
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
-
+        [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<Doctor>> Post(Doctor dt)
+        public async Task<ActionResult<Doctor>> Post(Doctor doctor)
         {
             try
             {
-                await _DContext.Doctors.AddAsync(dt);
-                _DContext.SaveChanges();
-                return Ok(dt);
+                var addedDoctor = await _doctorRepository.AddDoctor(doctor);
+                return Ok(addedDoctor);
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        [Authorize(Roles = "Admin")]
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, Doctor dt)
+        public async Task<ActionResult> Put(int id, Doctor doctor)
         {
             try
             {
-                if (id != dt.Doctor_Id)
+                var result = await _doctorRepository.UpdateDoctor(id, doctor);
+                if (!result)
                 {
                     return BadRequest("Doctor Id mismatched!");
                 }
-
-                _DContext.Entry(dt).State = EntityState.Modified;
-                await _DContext.SaveChangesAsync();
-                return Ok(dt);
+                return Ok(doctor);
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
             try
             {
-                var dp = await _DContext.Doctors.FindAsync(id);
-
-                if (dp == null)
+                var result = await _doctorRepository.DeleteDoctor(id);
+                if (!result)
                 {
                     return NotFound();
                 }
-
-                _DContext.Doctors.Remove(dp);
-                await _DContext.SaveChangesAsync();
                 return NoContent();
             }
             catch (Exception ex)
@@ -109,13 +102,14 @@ namespace APIPROJECT.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+        [Authorize(Roles = "Customer,Admin")]
 
         [HttpGet("count")]
         public async Task<ActionResult<int>> Count()
         {
             try
             {
-                int count = await _DContext.Doctors.CountAsync();
+                int count = await _doctorRepository.GetDoctorCount();
                 return Ok(count + " " + "Doctors are Available");
             }
             catch (Exception ex)
@@ -123,20 +117,14 @@ namespace APIPROJECT.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
-
+        [Authorize(Roles = "Customer,Admin")]
         [HttpGet("{id}/patients/count")]
         public async Task<ActionResult<int>> GetPatientCountByDoctorId(int id)
         {
             try
             {
-                if (_DContext.Doctors == null)
-                {
-                    return NotFound();
-                }
-
-                int count = await _DContext.Patients.CountAsync(p => p.doctor.Doctor_Id == id);
-                return Ok(id + " Id Doctor " + " has " + count + " patients.");
+                int count = await _doctorRepository.GetPatientCountByDoctorId(id);
+                return Ok(count);
             }
             catch (Exception ex)
             {
@@ -144,4 +132,5 @@ namespace APIPROJECT.Controllers
             }
         }
     }
+
 }

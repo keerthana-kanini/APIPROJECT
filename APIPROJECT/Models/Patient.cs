@@ -12,9 +12,10 @@ namespace APIPROJECT.Models
 
         public string  ? Disease { get; set; }
 
-        public string ? Email { get; set; }
+        public string? Email { get; set; }
 
-        public int Patient_No { get; set; }
+        [DataType(DataType.PhoneNumber)]
+        public string? Patient_No { get; set; }
 
         public Doctor? doctor { get; set; }
 

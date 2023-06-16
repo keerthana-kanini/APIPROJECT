@@ -6,36 +6,37 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using APIPROJECT.Models;
-using Microsoft.AspNetCore.Authorization;
 using APIPROJECT.Repository;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace APIPROJECT.Controllers
 {
-   
+    
     [Route("api/[controller]")]
     [ApiController]
-    public class PatientsController : ControllerBase
+    public class AppointmentsController : ControllerBase
     {
-        private readonly IPatientRepository _patientRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
 
-        public PatientsController(IPatientRepository patientRepository)
+        public AppointmentsController(IAppointmentRepository appointmentRepository)
         {
-            _patientRepository = patientRepository;
+            _appointmentRepository = appointmentRepository;
         }
 
-        // GET: api/Patients
+        // GET: api/Appointments
         [Authorize(Roles = "Customer,Admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
+        public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
         {
             try
             {
-                var patients = await _patientRepository.GetPatients();
-                if (patients == null)
+                var appointments = await _appointmentRepository.GetAppointments();
+                if (appointments == null)
                 {
                     return NotFound();
                 }
-                return Ok(patients);
+                return Ok(appointments);
             }
             catch (Exception ex)
             {
@@ -43,20 +44,19 @@ namespace APIPROJECT.Controllers
             }
         }
 
-
-        // GET: api/Patients/5
+        // GET: api/Appointments/5
         [Authorize(Roles = "Customer,Admin")]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Patient>> GetPatient(int id)
+        public async Task<ActionResult<Appointment>> GetAppointment(int id)
         {
             try
             {
-                var patient = await _patientRepository.GetPatientById(id);
-                if (patient == null)
+                var appointment = await _appointmentRepository.GetAppointmentById(id);
+                if (appointment == null)
                 {
                     return NotFound();
                 }
-                return patient;
+                return appointment;
             }
             catch (Exception ex)
             {
@@ -64,15 +64,15 @@ namespace APIPROJECT.Controllers
             }
         }
 
-        // PUT: api/Patients/5
+        // PUT: api/Appointments/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPatient(int id, Patient patient)
+        public async Task<IActionResult> PutAppointment(int id, Appointment appointment)
         {
             try
             {
-                var result = await _patientRepository.UpdatePatient(id, patient);
+                var result = await _appointmentRepository.UpdateAppointment(id, appointment);
                 if (!result)
                 {
                     return BadRequest();
@@ -85,16 +85,16 @@ namespace APIPROJECT.Controllers
             }
         }
 
-        // POST: api/Patients
+        // POST: api/Appointments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<ActionResult<Patient>> PostPatient(Patient patient)
+        public async Task<ActionResult<Appointment>> PostAppointment(Appointment appointment)
         {
             try
             {
-                var createdPatient = await _patientRepository.AddPatient(patient);
-                return CreatedAtAction("GetPatient", new { id = createdPatient.Patient_Id }, createdPatient);
+                var createdAppointment = await _appointmentRepository.AddAppointment(appointment);
+                return CreatedAtAction("GetAppointment", new { id = createdAppointment.Appointment_Id }, createdAppointment);
             }
             catch (Exception ex)
             {
@@ -102,14 +102,14 @@ namespace APIPROJECT.Controllers
             }
         }
 
-        // DELETE: api/Patients/5
+        // DELETE: api/Appointments/5
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePatient(int id)
+        public async Task<IActionResult> DeleteAppointment(int id)
         {
             try
             {
-                var result = await _patientRepository.DeletePatient(id);
+                var result = await _appointmentRepository.DeleteAppointment(id);
                 if (!result)
                 {
                     return NotFound();
@@ -121,27 +121,6 @@ namespace APIPROJECT.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
-
-        //Filtering
-        [Authorize(Roles = "Admin")]
-
-        [HttpGet("doctors/{specialization}")]
-        public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctorsBySpecialization(string specialization)
-        {
-            try
-            {
-                var doctors = await _patientRepository.GetDoctorsBySpecialization(specialization);
-                if (doctors == null || !doctors.Any())
-                {
-                    return NotFound();
-                }
-                return Ok(doctors);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
     }
-}
 
+}

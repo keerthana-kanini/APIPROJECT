@@ -11,7 +11,8 @@ namespace APIPROJECT.Models
 
         public string ?  Specialization { get; set; }
 
-        public int Doctor_No { get; set; }
+        [DataType(DataType.PhoneNumber)]
+        public string? Doctor_No { get; set; }
 
         public ICollection<Patient>? Patients { get; set; }
 
